@@ -31,6 +31,7 @@ import com.leadrdrk.umapatcher.ui.component.StringOption
 import com.leadrdrk.umapatcher.ui.component.TopBar
 import com.leadrdrk.umapatcher.ui.component.rememberDataStoreStringState
 import com.leadrdrk.umapatcher.utils.ksFile
+import com.leadrdrk.umapatcher.utils.qoopyCacheDir
 import com.leadrdrk.umapatcher.utils.showToast
 import com.leadrdrk.umapatcher.utils.universalKsFile
 import com.ramcosta.composedestinations.annotation.Destination
@@ -252,6 +253,19 @@ fun SettingsScreen() {
                         Toast.LENGTH_SHORT
                     )
                     appLibsVersion.value = ""
+                }
+            ) {
+            }
+
+            OptionBase(
+                title = stringResource(R.string.clear_qoopy_cache),
+                desc = stringResource(R.string.clear_qoopy_cache_desc),
+                onClick = {
+                    context.qoopyCacheDir.deleteRecursively()
+                    context.showToast(
+                        context.getString(R.string.qoopy_cache_cleared),
+                        Toast.LENGTH_SHORT
+                    )
                 }
             ) {
             }

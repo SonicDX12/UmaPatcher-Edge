@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -39,10 +40,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.leadrdrk.umapatcher.R
 import com.leadrdrk.umapatcher.core.GameChecker
+import com.leadrdrk.umapatcher.core.GameUpdateChecker
 import com.leadrdrk.umapatcher.core.PluginEntry
 import com.leadrdrk.umapatcher.core.PluginManager
 import com.leadrdrk.umapatcher.ui.component.TopBar
 import com.leadrdrk.umapatcher.ui.patcher.AppPatcherCard
+import com.leadrdrk.umapatcher.ui.patcher.QoopyDownloadCard
 import com.leadrdrk.umapatcher.ui.screen.destinations.AppSelectScreenDestination
 import com.leadrdrk.umapatcher.utils.safeNavigate
 import com.leadrdrk.umapatcher.utils.showToast
@@ -76,6 +79,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             InstallStatusCard(navigator)
+            QoopyDownloadCard(navigator)
             AppPatcherCard(navigator)
             PluginSection()
             Spacer(Modifier.height(8.dp))
@@ -88,6 +92,7 @@ fun InstallStatusCard(navigator: DestinationsNavigator) {
     val pm = LocalContext.current.packageManager
     val packageInfo = GameChecker.getPackageInfo(pm)
     val lifecycleOwner = LocalLifecycleOwner.current
+    val latestVersion = GameUpdateChecker.latestVersion.value
     ElevatedCard(
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -118,10 +123,20 @@ fun InstallStatusCard(navigator: DestinationsNavigator) {
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.version_name_prefix) + packageInfo.versionName,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.version_name_prefix) + packageInfo.versionName,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        if (latestVersion != null) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.new_version_available).format(latestVersion),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = stringResource(R.string.tap_to_select_app),

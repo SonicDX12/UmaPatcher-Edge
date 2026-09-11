@@ -21,6 +21,9 @@ val Context.universalKsFile: File
 val Context.pluginsDir: File
     get() = filesDir.resolve("plugins")
 
+val Context.qoopyCacheDir: File
+    get() = filesDir.resolve("qoopy_cache")
+
 fun Context.getActivity(): ComponentActivity? = when (this) {
     is ComponentActivity -> this
     is ContextWrapper -> baseContext.getActivity()

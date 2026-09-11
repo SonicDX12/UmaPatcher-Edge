@@ -39,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.leadrdrk.umapatcher.core.GameChecker
+import com.leadrdrk.umapatcher.core.GameUpdateChecker
 import com.leadrdrk.umapatcher.core.UpdateChecker
 import com.leadrdrk.umapatcher.ui.component.SimpleOkCancelDialog
 import com.leadrdrk.umapatcher.ui.patcher.PatcherLauncher
@@ -117,6 +118,7 @@ class MainActivity : ComponentActivity() {
 
     private fun appInit() {
         GameChecker.init(packageManager)
+        GameUpdateChecker.init(this)
 
         if (!PatcherLauncher.patching) {
             workDir.mkdir()

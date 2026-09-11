@@ -26,7 +26,8 @@ android {
         }
 
         release {
-            storeFile file(System.getenv("SIGNING_KEY_FILE"))
+            def signingKeyFile = System.getenv("SIGNING_KEY_FILE")
+            if (signingKeyFile) storeFile file(signingKeyFile)
             storePassword System.getenv("SIGNING_STORE_PASSWORD")
             keyAlias System.getenv("SIGNING_KEY_ALIAS")
             keyPassword System.getenv("SIGNING_KEY_PASSWORD")
@@ -45,6 +46,7 @@ android {
             shrinkResources false
             minifyEnabled false
             signingConfig signingConfigs.debug
+            applicationIdSuffix ".debug"
         }
     }
     compileOptions {
@@ -75,6 +77,24 @@ android {
 
 kotlin {
     jvmToolchain(8)
+}
+
+// Windows-only workaround: build-tools 35+'s aidl.exe embeds the full invocation
+// (including backslash-separated paths) in a "* Using: ..." Java comment. javac
+// treats \u sequences as unicode escapes even inside comments, so any path
+// segment starting with a lowercase "u" (e.g. "\Users\...", "\umapatcher\...")
+// breaks compilation with "illegal unicode escape". Sanitize that one comment
+// line in place after AIDL generation, before javac ever sees it.
+tasks.matching { it.name ==~ /compile.*Aidl/ }.configureEach { aidlTask ->
+    aidlTask.doLast {
+        fileTree("$buildDir/generated/aidl_source_output_dir") {
+            include "**/*.java"
+        }.each { f ->
+            def text = f.text
+            def fixed = text.replaceAll(/(?m)^( \* Using:.*)$/) { match, line -> line.replace('\\', '/') }
+            if (fixed != text) f.text = fixed
+        }
+    }
 }
 
 aboutLibraries {

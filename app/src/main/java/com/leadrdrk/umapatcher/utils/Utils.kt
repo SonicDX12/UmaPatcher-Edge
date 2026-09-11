@@ -27,7 +27,7 @@ fun deleteRecursive(fileOrDirectory: File, deleteRoot: Boolean = true) {
     if (deleteRoot) fileOrDirectory.delete()
 }
 
-fun downloadFileAndDigestSHA256(url: URL, outputFile: File, onProgress: (Float) -> Unit): ByteArray {
+fun downloadFileAndDigest(url: URL, outputFile: File, algorithm: String, onProgress: (Float) -> Unit): ByteArray {
     val conn = url.openConnection() as HttpURLConnection
     conn.doInput = true
     conn.instanceFollowRedirects = true
@@ -36,16 +36,16 @@ fun downloadFileAndDigestSHA256(url: URL, outputFile: File, onProgress: (Float) 
     if (conn.responseCode != 200) throw IOException()
     val contentLength = conn.contentLengthLong
 
-    val shaDigest = MessageDigest.getInstance("SHA-256") 
+    val digest = MessageDigest.getInstance(algorithm)
 
     conn.inputStream.use { input ->
         outputFile.outputStream().use { output ->
-            val dataBuffer = ByteArray(1024) 
+            val dataBuffer = ByteArray(1024)
             var totalBytesRead = 0L
             var bytesRead: Int
             while (input.read(dataBuffer, 0, 1024).also { bytesRead = it } != -1) {
                 output.write(dataBuffer, 0, bytesRead)
-                shaDigest.update(dataBuffer, 0, bytesRead)
+                digest.update(dataBuffer, 0, bytesRead)
 
                 totalBytesRead += bytesRead
                 if (contentLength != -1L) {
@@ -55,11 +55,13 @@ fun downloadFileAndDigestSHA256(url: URL, outputFile: File, onProgress: (Float) 
         }
     }
 
-    return shaDigest.digest() 
+    return digest.digest()
 }
 
-private val gson = Gson()
-fun fetchJson(url: URL, accept: String = "application/json"): HashMap<*, *> {
+fun downloadFileAndDigestSHA256(url: URL, outputFile: File, onProgress: (Float) -> Unit): ByteArray =
+    downloadFileAndDigest(url, outputFile, "SHA-256", onProgress)
+
+fun fetchText(url: URL, accept: String = "text/plain"): String {
     val conn = url.openConnection() as HttpURLConnection
     conn.setRequestProperty("Accept", accept)
     conn.doInput = true
@@ -68,7 +70,7 @@ fun fetchJson(url: URL, accept: String = "application/json"): HashMap<*, *> {
 
     if (conn.responseCode != 200) throw IOException()
 
-    val body = conn.inputStream.use { input ->
+    return conn.inputStream.use { input ->
         val result = ByteArrayOutputStream()
         val buffer = ByteArray(1024)
 
@@ -78,9 +80,11 @@ fun fetchJson(url: URL, accept: String = "application/json"): HashMap<*, *> {
         }
         result.toString("UTF-8")
     }
-
-    return gson.fromJson(body, HashMap::class.java)
 }
+
+private val gson = Gson()
+fun fetchJson(url: URL, accept: String = "application/json"): HashMap<*, *> =
+    gson.fromJson(fetchText(url, accept), HashMap::class.java)
 
 private val HEX_ARRAY = "0123456789abcdef".toCharArray()
 fun bytesToHex(bytes: ByteArray): String {

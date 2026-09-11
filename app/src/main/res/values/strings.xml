@@ -11,6 +11,7 @@
     <string name="package_name_prefix">"Package: "</string>
     <string name="version_name_prefix">"Version: "</string>
     <string name="tap_to_select_app">Tap here to select another app</string>
+    <string name="new_version_available">New version available: %s</string>
 
     <string name="app_patcher_label">App patching</string>
     <string name="patch">Patch</string>
@@ -18,6 +19,23 @@
     <string name="n_files_selected">%d files selected</string>
     <string name="tap_to_select_file">Tap here to select files</string>
     <string name="app_patcher_supported_files">Supported files: APK / Split APKs, XAPK</string>
+
+    <!-- Qoopy downloader -->
+    <string name="qoopy_download_apk">Download JP APK (QooApp)</string>
+    <string name="qoopy_download_apk_desc">Fetch the latest Umamusume JP APK directly from QooApp via Qoopy.</string>
+    <string name="use_cached_files">Use cached files</string>
+    <string name="qoopy_download_title">Download from QooApp</string>
+    <string name="qoopy_download_button">Download</string>
+    <string name="qoopy_not_available">This app is not available for download right now.</string>
+    <string name="qoopy_load_error">Failed to load the Qoopy page. Check your internet connection.</string>
+    <string name="qoopy_parse_error">Failed to read the app info returned by Qoopy.</string>
+    <string name="qoopy_download_failed">Download failed.</string>
+    <string name="qoopy_updated_at_prefix">"Updated at: "</string>
+    <string name="qoopy_includes_splits">Includes %d split APK file(s)</string>
+    <string name="qoopy_downloading_base_apk">Downloading base APK</string>
+    <string name="qoopy_downloading_split_apk">Downloading split APK %1$d/%2$d</string>
+    <string name="qoopy_checksum_mismatch">Downloaded file is corrupted (checksum mismatch).</string>
+    <string name="retry">Retry</string>
 
     <!-- Settings -->
     <string name="check_for_updates_opt">Check for updates</string>
@@ -36,6 +54,9 @@
     <string name="force_redownload_mod">Force redownload Hachimi</string>
     <string name="force_redownload_mod_desc">Invalidate the existing libraries and force them to be redownloaded.</string>
     <string name="force_redownload_mod_notice">Hachimi Edge will be redownloaded on the next app patching session.</string>
+    <string name="clear_qoopy_cache">Clear cached split APKs</string>
+    <string name="clear_qoopy_cache_desc">Delete the Umamusume JP APK files cached from QooApp. Useful if a cached file got corrupted.</string>
+    <string name="qoopy_cache_cleared">Cached files cleared.</string>
     <string name="plugins_title">Plugins</string>
     <string name="add_plugin">Add plugin</string>
     <string name="remove_plugin">Remove</string>

@@ -6,7 +6,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,8 +47,11 @@ import com.leadrdrk.umapatcher.R
 import com.leadrdrk.umapatcher.MainActivity
 import com.leadrdrk.umapatcher.core.PrefKey
 import com.leadrdrk.umapatcher.core.dataStore
+import com.leadrdrk.umapatcher.core.QoopyCache
+import com.leadrdrk.umapatcher.core.QoopyCacheEntry
 import com.leadrdrk.umapatcher.core.getPrefValue
 import com.leadrdrk.umapatcher.patcher.AppPatcher
+import com.leadrdrk.umapatcher.patcher.LegacyInstaller
 import com.leadrdrk.umapatcher.shizuku.ShizukuState
 import com.leadrdrk.umapatcher.ui.component.RadioGroupOption
 import com.leadrdrk.umapatcher.ui.component.SimpleOkCancelDialog
@@ -60,6 +65,7 @@ import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
 private const val INSTALL_METHOD_SAVE_DELAY_MILLIS = 5000L
+private enum class FileSource { MANUAL, CACHE }
 
 @Composable
 fun AppPatcherCard(navigator: DestinationsNavigator) {
@@ -71,7 +77,18 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
     // 0=Save, 1=Normal, 2=Direct, 3=Shizuku, 4=Legacy
     val installMethod = rememberSaveable { mutableIntStateOf(1) }
     var fileUris by rememberSaveable { mutableStateOf<Array<Uri>>(arrayOf()) }
+    var fileSource by remember { mutableStateOf<FileSource?>(null) }
     var mergeApksPref by remember { mutableStateOf(false) }
+    var cachedEntry by remember { mutableStateOf<QoopyCacheEntry?>(null) }
+    LaunchedEffect(Unit) {
+        cachedEntry = QoopyCache.findAny(context)
+        QoopyDownloadResult.onFilesReady = { uris ->
+            fileUris = uris
+            fileSource = FileSource.CACHE
+            cachedEntry = QoopyCache.findAny(context)
+        }
+    }
+
     var useLatestVersion by remember { mutableStateOf(true) }
     var customSoUri by rememberSaveable { mutableStateOf<Uri?>(null) }
     var customSoFileName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -108,8 +125,10 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
             }
             if (existingFileUris.size != savedFileUris.size)
                 saveFileUris(context, existingFileUris.toTypedArray())
-            if (existingFileUris.isNotEmpty())
+            if (existingFileUris.isNotEmpty()) {
                 fileUris = existingFileUris.toTypedArray()
+                fileSource = FileSource.MANUAL
+            }
         }
 
         if (customSoUri == null) {
@@ -166,6 +185,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         for (uri in fileUris) releasePersistableUriPermission(context, uri)
         for (uri in newFileUris) tryTakePersistableUriPermission(context, uri)
         fileUris = newFileUris
+        fileSource = FileSource.MANUAL
         coroutineScope.launch { saveFileUris(context, newFileUris) }
     }
 
@@ -441,44 +461,102 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         )
         if (installMethod.intValue != 2) {
             Spacer(Modifier.height(16.dp))
-            ElevatedCard(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ),
-                modifier = Modifier
-                    .clickable {
-                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                            .apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                                type = "*/*"
-                            }
-                        fileSelectLauncher.launch(intent)
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                        .weight(1f)
+                        .let {
+                            if (fileSource == FileSource.MANUAL)
+                                it.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
+                            else it
+                        }
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                                .apply {
+                                    addCategory(Intent.CATEGORY_OPENABLE)
+                                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                                    type = "*/*"
+                                }
+                            fileSelectLauncher.launch(intent)
+                        }
                 ) {
-                    Icon(painterResource(R.drawable.ic_file_open), null)
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = stringResource(R.string.tap_to_select_file),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.n_files_selected).format(fileUris.size),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.app_patcher_supported_files),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Icon(painterResource(R.drawable.ic_file_open), null)
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.tap_to_select_file),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.n_files_selected).format(fileUris.size),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.app_patcher_supported_files),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                cachedEntry?.let { entry ->
+                    ElevatedCard(
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .let {
+                                if (fileSource == FileSource.CACHE)
+                                    it.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
+                                else it
+                            }
+                            .clickable {
+                                fileUris = entry.files
+                                    .map { LegacyInstaller.getApkUri(context, it) }
+                                    .toTypedArray()
+                                fileSource = FileSource.CACHE
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Icon(painterResource(R.drawable.ic_cloud_download), null)
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.use_cached_files),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.n_files_selected).format(entry.files.size),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.version_name_prefix) + entry.version,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
             }
