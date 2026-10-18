@@ -8,16 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,10 +24,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.core.text.isDigitsOnly
 import androidx.datastore.preferences.core.edit
 import com.leadrdrk.umapatcher.core.dataStore
 import kotlinx.coroutines.launch
@@ -85,35 +81,6 @@ fun rememberDataStoreStringState(
 }
 
 @Composable
-fun OptionBase(
-    title: String,
-    desc: String,
-    onClick: () -> Unit,
-    content: @Composable () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(all = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-            ) {
-                OptionTitleAndDesc(title, desc)
-            }
-            Spacer(Modifier.width(16.dp))
-            content()
-        }
-        Divider()
-    }
-}
-
-@Composable
 fun OptionTitleAndDesc(
     title: String,
     desc: String
@@ -130,42 +97,21 @@ fun OptionTitleAndDesc(
     )
 }
 
-@Composable
-fun BooleanOption(
-    title: String,
-    desc: String,
-    state: MutableState<Boolean>,
-    enabled: Boolean = true
-) {
-    OptionBase(
-        title = title,
-        desc = desc,
-        onClick = {
-            if (enabled)
-                state.value = !state.value
-        }
-    ) {
-        Switch(
-            checked = state.value,
-            onCheckedChange = { state.value = it },
-            enabled = enabled
-        )
-    }
-}
-
+/** Settings item showing the current value; tapping it edits the value in a dialog. */
 @Composable
 fun StringOption(
     title: String,
     state: MutableState<String>,
-    placeholder: String? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions()
+    icon: ImageVector? = null,
+    placeholder: String? = null
 ) {
     var openDialog by remember { mutableStateOf(false) }
-    OptionBase(
+    SettingsItem(
         title = title,
-        desc = state.value,
+        subtitle = state.value,
+        icon = icon,
         onClick = { openDialog = true }
-    ) {}
+    )
 
     var tmpValue by remember { mutableStateOf(state.value) }
     LaunchedEffect(openDialog) {
@@ -187,36 +133,10 @@ fun StringOption(
                 placeholder = {
                     if (placeholder != null)
                         Text(placeholder)
-                },
-                keyboardOptions = keyboardOptions
+                }
             )
         }
     }
-}
-
-@Composable
-fun IntOption(
-    title: String,
-    state: MutableIntState,
-    placeholder: String? = null
-) {
-    val strValue = remember { mutableStateOf(state.intValue.toString()) }
-
-    LaunchedEffect(strValue.value) {
-        val str = strValue.value
-        if (str.isDigitsOnly()) {
-            val value = str.toInt()
-            if (state.intValue != value)
-                state.intValue = value
-        }
-    }
-
-    StringOption(
-        title = title,
-        state = strValue,
-        placeholder = placeholder,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-    )
 }
 
 @Composable

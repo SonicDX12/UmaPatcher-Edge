@@ -38,6 +38,9 @@
     <string name="retry">Retry</string>
 
     <!-- Settings -->
+    <string name="settings_section_patching">Patching</string>
+    <string name="settings_section_hachimi">Hachimi</string>
+    <string name="settings_section_signing">Signing</string>
     <string name="check_for_updates_opt">Check for updates</string>
     <string name="check_for_updates_desc">Occasionally check for updates when the app starts.</string>
     <string name="hachimi_repo">Hachimi Edge repo</string>

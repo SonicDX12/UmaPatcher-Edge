@@ -4,7 +4,17 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.font.FontWeight
+import androidx.core.graphics.drawable.toBitmap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,10 +34,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +51,10 @@ import com.leadrdrk.umapatcher.core.GameChecker
 import com.leadrdrk.umapatcher.core.GameUpdateChecker
 import com.leadrdrk.umapatcher.core.PluginEntry
 import com.leadrdrk.umapatcher.core.PluginManager
-import com.leadrdrk.umapatcher.ui.component.TopBar
+import com.leadrdrk.umapatcher.ui.component.BottomBarClearance
+import com.leadrdrk.umapatcher.ui.component.ScreenHeader
+import com.leadrdrk.umapatcher.ui.component.SectionCard
+import com.leadrdrk.umapatcher.ui.component.SectionShape
 import com.leadrdrk.umapatcher.ui.patcher.AppPatcherCard
 import com.leadrdrk.umapatcher.ui.patcher.QoopyDownloadCard
 import com.leadrdrk.umapatcher.ui.screen.destinations.AppSelectScreenDestination
@@ -57,33 +68,19 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 @Destination
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
-    Scaffold(
-        topBar = {
-            TopBar(
-                title = stringResource(R.string.app_name),
-                navigationIcon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_launcher_foreground),
-                        contentDescription = null,
-                        modifier = Modifier.size(54.dp)
-                    )
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            InstallStatusCard(navigator)
-            QoopyDownloadCard(navigator)
-            AppPatcherCard(navigator)
-            PluginSection()
-            Spacer(Modifier.height(8.dp))
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ScreenHeader(stringResource(R.string.app_name))
+        InstallStatusCard(navigator)
+        QoopyDownloadCard(navigator)
+        AppPatcherCard(navigator)
+        PluginSection()
+        Spacer(Modifier.height(BottomBarClearance))
     }
 }
 
@@ -93,72 +90,76 @@ fun InstallStatusCard(navigator: DestinationsNavigator) {
     val packageInfo = GameChecker.getPackageInfo(pm)
     val lifecycleOwner = LocalLifecycleOwner.current
     val latestVersion = GameUpdateChecker.latestVersion.value
-    ElevatedCard(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
+    val icon = remember(packageInfo) {
+        packageInfo?.applicationInfo?.let { pm.getApplicationIcon(it).toBitmap().asImageBitmap() }
+    }
+    val colors = MaterialTheme.colorScheme
+    val shape = SectionShape
+
+    Row(
         modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(
+                Brush.linearGradient(
+                    listOf(colors.tertiaryContainer, colors.primaryContainer, colors.secondaryContainer)
+                )
+            )
+            .border(1.dp, colors.outline.copy(alpha = 0.5f), shape)
             .clickable {
                 safeNavigate(lifecycleOwner) {
                     navigator.navigate(AppSelectScreenDestination)
                 }
             }
+            .padding(20.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        if (icon != null) {
+            Image(
+                bitmap = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        } else {
+            Icon(Icons.Outlined.Info, null, Modifier.size(32.dp))
+        }
+        Column(Modifier.padding(start = 20.dp)) {
             if (packageInfo != null) {
-                val title = stringResource(R.string.game_installed)
-                Icon(Icons.Outlined.Info, title)
-                Column(Modifier.padding(start = 20.dp)) {
+                Text(
+                    text = packageInfo.applicationInfo?.loadLabel(pm)?.toString()
+                        ?: stringResource(R.string.game_installed),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "v" + packageInfo.versionName,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                if (latestVersion != null) {
                     Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.package_name_prefix) + packageInfo.packageName,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(R.string.version_name_prefix) + packageInfo.versionName,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        if (latestVersion != null) {
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.new_version_available).format(latestVersion),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.tap_to_select_app),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(R.string.new_version_available).format(latestVersion),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.error
                     )
                 }
-            }
-            else {
-                val title = stringResource(R.string.game_not_installed)
-                Icon(Icons.Outlined.Info, title)
-                Column(Modifier.padding(start = 20.dp)) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.game_not_installed_info),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = packageInfo.packageName + " · " + stringResource(R.string.tap_to_select_app),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.game_not_installed),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(R.string.game_not_installed_info),
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }
@@ -184,12 +185,7 @@ fun PluginSection() {
         plugins.value = PluginManager.listPlugins(context)
     }
 
-    Card(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    SectionCard {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -254,11 +250,11 @@ fun PluginSection() {
             } else {
                 plugins.value.forEach { plugin ->
                     Card(
-                        colors = CardDefaults.elevatedCardColors(
+                        colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface
                         ),
+                        shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Row(

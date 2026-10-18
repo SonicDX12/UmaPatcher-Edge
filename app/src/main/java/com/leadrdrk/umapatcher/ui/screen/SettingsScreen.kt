@@ -8,7 +8,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,10 +42,12 @@ import com.leadrdrk.umapatcher.core.PrefKey
 import com.leadrdrk.umapatcher.core.dataStore
 import com.leadrdrk.umapatcher.core.defaultValues
 import com.leadrdrk.umapatcher.core.getPrefValue
-import com.leadrdrk.umapatcher.ui.component.BooleanOption
-import com.leadrdrk.umapatcher.ui.component.OptionBase
+import com.leadrdrk.umapatcher.ui.component.BottomBarClearance
+import com.leadrdrk.umapatcher.ui.component.ScreenHeader
+import com.leadrdrk.umapatcher.ui.component.SectionTitle
+import com.leadrdrk.umapatcher.ui.component.SettingsItem
+import com.leadrdrk.umapatcher.ui.component.SettingsSwitchItem
 import com.leadrdrk.umapatcher.ui.component.StringOption
-import com.leadrdrk.umapatcher.ui.component.TopBar
 import com.leadrdrk.umapatcher.ui.component.rememberDataStoreStringState
 import com.leadrdrk.umapatcher.utils.ksFile
 import com.leadrdrk.umapatcher.utils.qoopyCacheDir
@@ -145,130 +164,150 @@ fun SettingsScreen() {
         configRead = true
     }
 
-    Scaffold(
-        topBar = {
-            TopBar(stringResource(R.string.settings))
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-        ) {
-            if (!configRead) return@Column
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        ScreenHeader(stringResource(R.string.settings))
+        if (!configRead) return@Column
 
-            BooleanOption(
-                title = stringResource(R.string.check_for_updates_opt),
-                desc = stringResource(R.string.check_for_updates_desc),
-                state = checkForUpdates
-            )
+        SettingsSwitchItem(
+            title = stringResource(R.string.check_for_updates_opt),
+            subtitle = stringResource(R.string.check_for_updates_desc),
+            icon = Icons.Filled.Refresh,
+            checked = checkForUpdates.value,
+            onCheckedChange = { checkForUpdates.value = it }
+        )
 
-            BooleanOption(
-                title = stringResource(R.string.use_latest_version),
-                desc = stringResource(R.string.use_latest_version_desc),
-                state = useLatestVersion
-            )
+        SectionTitle(stringResource(R.string.settings_section_patching), Icons.Filled.Build)
 
-            BooleanOption(
-                title = stringResource(R.string.merge_apks),
-                desc = stringResource(R.string.merge_apks_desc),
-                state = mergeApks
-            )
+        SettingsSwitchItem(
+            title = stringResource(R.string.use_latest_version),
+            subtitle = stringResource(R.string.use_latest_version_desc),
+            icon = Icons.Filled.Star,
+            checked = useLatestVersion.value,
+            onCheckedChange = { useLatestVersion.value = it }
+        )
 
-            BooleanOption(
-                title = stringResource(R.string.export_internal_data_provider),
-                desc = stringResource(R.string.export_internal_data_provider_desc),
-                state = exportInternalDataProvider
-            )
+        SettingsSwitchItem(
+            title = stringResource(R.string.merge_apks),
+            subtitle = stringResource(R.string.merge_apks_desc),
+            icon = Icons.Filled.List,
+            checked = mergeApks.value,
+            onCheckedChange = { mergeApks.value = it }
+        )
 
-            BooleanOption(
-                title = stringResource(R.string.use_internal_files_dir),
-                desc = stringResource(R.string.use_internal_files_dir_desc),
-                state = useInternalFilesDir
-            )
+        SettingsSwitchItem(
+            title = stringResource(R.string.export_internal_data_provider),
+            subtitle = stringResource(R.string.export_internal_data_provider_desc),
+            icon = Icons.Filled.Share,
+            checked = exportInternalDataProvider.value,
+            onCheckedChange = { exportInternalDataProvider.value = it }
+        )
 
-            BooleanOption(
-                title = stringResource(R.string.universal_signing_key),
-                desc = stringResource(R.string.universal_signing_key_desc),
-                state = useUniversalSigningKey
-            )
+        SettingsSwitchItem(
+            title = stringResource(R.string.use_internal_files_dir),
+            subtitle = stringResource(R.string.use_internal_files_dir_desc),
+            icon = Icons.Filled.Lock,
+            checked = useInternalFilesDir.value,
+            onCheckedChange = { useInternalFilesDir.value = it }
+        )
 
-            StringOption(
-                title = stringResource(R.string.hachimi_repo),
-                state = repoState,
-                placeholder = defaultValues[PrefKey.HACHIMI_REPO] as String
-            )
+        SectionTitle(stringResource(R.string.settings_section_hachimi), Icons.Filled.Settings)
 
-            OptionBase(
-                title = stringResource(R.string.export_signing_key),
-                desc = if (useUniversalSigningKey.value)
-                    context.getString(R.string.signing_key_disabled_universal)
-                else
-                    context.getString(R.string.export_signing_key_desc),
-                onClick = {
-                    if (useUniversalSigningKey.value) return@OptionBase
-                    if (context.ksFile.exists()) {
-                        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-                            .apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
-                                putExtra(Intent.EXTRA_TITLE, "UmaPatcher.bks")
-                            }
-                        exportKsLauncher.launch(intent)
-                    }
-                    else {
-                        context.showToast(
-                            context.getString(R.string.no_keystore_to_export),
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                }
-            ) {
+        StringOption(
+            title = stringResource(R.string.hachimi_repo),
+            icon = Icons.Filled.Edit,
+            state = repoState,
+            placeholder = defaultValues[PrefKey.HACHIMI_REPO] as String
+        )
+
+        SettingsItem(
+            title = stringResource(R.string.force_redownload_mod),
+            subtitle = stringResource(R.string.force_redownload_mod_desc),
+            icon = Icons.Filled.Refresh,
+            trailing = null,
+            onClick = {
+                context.showToast(
+                    context.getString(R.string.force_redownload_mod_notice),
+                    Toast.LENGTH_SHORT
+                )
+                appLibsVersion.value = ""
             }
+        )
 
-            OptionBase(
-                title = stringResource(R.string.import_signing_key),
-                desc = if (useUniversalSigningKey.value)
-                    context.getString(R.string.signing_key_disabled_universal)
-                else
-                    context.getString(R.string.import_signing_key_desc),
-                onClick = {
-                    if (useUniversalSigningKey.value) return@OptionBase
-                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        SettingsItem(
+            title = stringResource(R.string.clear_qoopy_cache),
+            subtitle = stringResource(R.string.clear_qoopy_cache_desc),
+            icon = Icons.Filled.Delete,
+            trailing = null,
+            onClick = {
+                context.qoopyCacheDir.deleteRecursively()
+                context.showToast(
+                    context.getString(R.string.qoopy_cache_cleared),
+                    Toast.LENGTH_SHORT
+                )
+            }
+        )
+
+        SectionTitle(stringResource(R.string.settings_section_signing), Icons.Filled.Lock)
+
+        SettingsSwitchItem(
+            title = stringResource(R.string.universal_signing_key),
+            subtitle = stringResource(R.string.universal_signing_key_desc),
+            icon = Icons.Filled.CheckCircle,
+            checked = useUniversalSigningKey.value,
+            onCheckedChange = { useUniversalSigningKey.value = it }
+        )
+
+        SettingsItem(
+            title = stringResource(R.string.export_signing_key),
+            subtitle = if (useUniversalSigningKey.value)
+                stringResource(R.string.signing_key_disabled_universal)
+            else
+                stringResource(R.string.export_signing_key_desc),
+            icon = Icons.Filled.ExitToApp,
+            enabled = !useUniversalSigningKey.value,
+            onClick = {
+                if (context.ksFile.exists()) {
+                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
                         .apply {
                             addCategory(Intent.CATEGORY_OPENABLE)
                             type = "*/*"
+                            putExtra(Intent.EXTRA_TITLE, "UmaPatcher.bks")
                         }
-                    importKsLauncher.launch(intent)
+                    exportKsLauncher.launch(intent)
                 }
-            ) {
-            }
-
-            OptionBase(
-                title = stringResource(R.string.force_redownload_mod),
-                desc = stringResource(R.string.force_redownload_mod_desc),
-                onClick = {
+                else {
                     context.showToast(
-                        context.getString(R.string.force_redownload_mod_notice),
-                        Toast.LENGTH_SHORT
-                    )
-                    appLibsVersion.value = ""
-                }
-            ) {
-            }
-
-            OptionBase(
-                title = stringResource(R.string.clear_qoopy_cache),
-                desc = stringResource(R.string.clear_qoopy_cache_desc),
-                onClick = {
-                    context.qoopyCacheDir.deleteRecursively()
-                    context.showToast(
-                        context.getString(R.string.qoopy_cache_cleared),
+                        context.getString(R.string.no_keystore_to_export),
                         Toast.LENGTH_SHORT
                     )
                 }
-            ) {
             }
-        }
+        )
+
+        SettingsItem(
+            title = stringResource(R.string.import_signing_key),
+            subtitle = if (useUniversalSigningKey.value)
+                stringResource(R.string.signing_key_disabled_universal)
+            else
+                stringResource(R.string.import_signing_key_desc),
+            icon = Icons.Filled.AddCircle,
+            enabled = !useUniversalSigningKey.value,
+            onClick = {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                    .apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "*/*"
+                    }
+                importKsLauncher.launch(intent)
+            }
+        )
+
+        Spacer(Modifier.height(BottomBarClearance))
     }
 }
