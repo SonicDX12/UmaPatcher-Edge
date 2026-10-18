@@ -74,7 +74,7 @@
     <string name="shizuku_install_unavailable">(Недоступна)</string>
     <string name="legacy_install">Установка в старом режиме</string>
     <string name="legacy_install_unknown_sources_required">Требуется разрешение на установку неизвестных приложений</string>
-    <string name="legacy_install_unknown_sources_info">Android требует, чтобы для запуска установщика пакетов приложению было выдано разрешение на установку неизвестных приложений. Нажмите OK, чтобы открыть настройки, затем выдайте UmaPatcher Edge необходимое разрешение и вернитесь сюда.</string>
+    <string name="legacy_install_unknown_sources_info">Android требует, чтобы для запуска установщика пакетов приложению было выдано разрешение на установку неизвестных приложений. Нажмите OK, чтобы открыть настройки, затем выдайте UmaPatcher DX необходимое разрешение и вернитесь сюда.</string>
     <string name="legacy_install_failed">Не удалось запустить системный установщик пакетов.</string>
 
     <!-- Shizuku -->

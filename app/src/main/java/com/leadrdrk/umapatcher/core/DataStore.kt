@@ -28,6 +28,7 @@ object PrefKey {
     val FILE_URIS = stringPreferencesKey("app_patcher_file_uris")
     val CUSTOM_SO_URI = stringPreferencesKey("custom_so_uri")
     val INSTALL_METHOD = intPreferencesKey("install_method")
+    val KEY_MIGRATION_SHOWN = booleanPreferencesKey("key_migration_shown")
 }
 
 val defaultValues = mapOf(
@@ -43,6 +44,7 @@ val defaultValues = mapOf(
     Pair(PrefKey.FILE_URIS, ""),
     Pair(PrefKey.CUSTOM_SO_URI, ""),
     Pair(PrefKey.INSTALL_METHOD, 1),
+    Pair(PrefKey.KEY_MIGRATION_SHOWN, false),
 )
 
 suspend fun Context.getPrefValue(key: Preferences.Key<*>): Any? {

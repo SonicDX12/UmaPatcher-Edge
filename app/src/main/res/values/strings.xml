@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="TypographyEllipsis">
-    <string name="app_name" translatable="false">UmaPatcher Edge</string>
+    <string name="app_name" translatable="false">UmaPatcher DX</string>
     <string name="home">Home</string>
     <string name="settings">Settings</string>
     <string name="about">About</string>
@@ -94,6 +94,9 @@
     <string name="app_desc">UM:PD Hachimi Edge mod patching tool for Android.</string>
     <string name="check_for_updates">Check for updates</string>
     <string name="open_source_licenses">Open source licenses</string>
+    <string name="based_on">Based on UmaPatcher Edge by kairusds and UmaPatcher by LeadRDRK.</string>
+    <string name="key_migration_title">Coming from UmaPatcher Edge?</string>
+    <string name="key_migration_desc">UmaPatcher DX signs the game with its own key. If your game was patched with UmaPatcher Edge, export the key there (Settings → Export signing key) and import it here (Settings → Import signing key) before patching. Otherwise you will have to uninstall the game before installing the new patch.\n\nOpen Settings now?</string>
     <string name="view_source_code">View source code</string>
     <string name="support_me">Support me on Ko-fi</string>
 
@@ -120,7 +123,7 @@
     <string name="shizuku_install_unavailable">(Unavailable)</string>
     <string name="legacy_install">Legacy install</string>
     <string name="legacy_install_unknown_sources_required">Install unknown apps permission required</string>
-    <string name="legacy_install_unknown_sources_info">Android requires you to grant this app permission to install unknown apps before it can launch the system package installer. Tap OK to open the settings page, then grant the permission for UmaPatcher Edge and return here after granting the permission.</string>
+    <string name="legacy_install_unknown_sources_info">Android requires you to grant this app permission to install unknown apps before it can launch the system package installer. Tap OK to open the settings page, then grant the permission for UmaPatcher DX and return here after granting the permission.</string>
     <string name="legacy_install_failed">Failed to launch the system package installer.</string>
 
     <!-- Shizuku -->

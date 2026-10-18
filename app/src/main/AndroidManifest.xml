@@ -19,7 +19,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="ウマPatcher (E)"
+            android:label="ウマPatcher (DX)"
             android:launchMode="singleTask"
             android:theme="@style/Theme.UmaPatcher">
             <intent-filter>
@@ -57,6 +57,7 @@
     </application>
 
     <queries>
+        <package android:name="com.leadrdrk.umapatcher.edge" />
         <package android:name="jp.co.cygames.umamusume" />
         <package android:name="com.komoe.kmumamusumegp" />
         <package android:name="com.komoe.umamusumeofficial" />

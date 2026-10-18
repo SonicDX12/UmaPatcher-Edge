@@ -85,6 +85,13 @@ fun AboutScreen(navigator: DestinationsNavigator) {
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.based_on),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -105,7 +112,7 @@ fun AboutScreen(navigator: DestinationsNavigator) {
         SettingsItem(
             title = stringResource(R.string.view_source_code),
             leadingIcon = painterResource(R.drawable.ic_github),
-            onClick = { uriHandler.openUri("https://github.com/LeadRDRK/UmaPatcher") }
+            onClick = { uriHandler.openUri("https://github.com/SonicDX12/UmaPatcher-Edge") }
         )
         SettingsItem(
             title = stringResource(R.string.support_me),

@@ -123,7 +123,7 @@
     <string name="failed_to_read_custom_so">读取 Hachimi Edge .so 文件失败。</string>
     <string name="legacy_install">传统方式安装</string>
     <string name="legacy_install_unknown_sources_required">需要授予“安装未知应用”权限</string>
-    <string name="legacy_install_unknown_sources_info">Android 系统要求先授予本应用“安装未知应用”权限，才能启动系统软件包安装程序。点击“确定”前往设置页面，为 UmaPatcher Edge 授予该权限后返回此处即可。</string>
+    <string name="legacy_install_unknown_sources_info">Android 系统要求先授予本应用“安装未知应用”权限，才能启动系统软件包安装程序。点击“确定”前往设置页面，为 UmaPatcher DX 授予该权限后返回此处即可。</string>
     <string name="legacy_install_failed">启动系统软件包安装程序失败。</string>
     <string name="merge_apks">将拆分 APK 合并为独立 APK</string>
     <string name="merge_apks_desc">当使用“保存补丁后的文件”且选用了拆分 APK 时，输出文件将合并为独立的单个 APK，而不是打包为 XAPK。</string>

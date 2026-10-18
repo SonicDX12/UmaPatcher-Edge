@@ -59,6 +59,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.leadrdrk.umapatcher.core.GameChecker
+import com.leadrdrk.umapatcher.core.PrefKey
+import com.leadrdrk.umapatcher.core.dataStore
+import com.leadrdrk.umapatcher.core.getPrefValue
+import com.leadrdrk.umapatcher.ui.screen.destinations.SettingsScreenDestination
+import com.leadrdrk.umapatcher.utils.ksFile
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.launch
 import com.leadrdrk.umapatcher.core.GameUpdateChecker
 import com.leadrdrk.umapatcher.core.UpdateChecker
 import com.leadrdrk.umapatcher.ui.component.SimpleOkCancelDialog
@@ -78,6 +88,8 @@ import rikka.shizuku.Shizuku
 import com.topjohnwu.superuser.Shell
 
 private val rootInitialized = mutableStateOf(false)
+
+private const val ORIGINAL_APP_PACKAGE = "com.leadrdrk.umapatcher.edge"
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -181,6 +193,16 @@ private fun MainContent() {
     var tagName by remember { mutableStateOf("") }
     val uriHandler = LocalUriHandler.current
 
+    // Shown once to people who still have UmaPatcher Edge, whose games carry its signing key
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var showKeyMigration by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        showKeyMigration = !(context.getPrefValue(PrefKey.KEY_MIGRATION_SHOWN) as Boolean) &&
+            !context.ksFile.exists() &&
+            runCatching { context.packageManager.getPackageInfo(ORIGINAL_APP_PACKAGE, 0) }.isSuccess
+    }
+
     UpdateChecker.callback = { name ->
         tagName = name
         openUpdateDialog = true
@@ -210,7 +232,21 @@ private fun MainContent() {
                 }
             }
             if (!wide) BottomBar(navController, bottomBarState, Modifier.align(Alignment.BottomCenter))
-            if (openUpdateDialog) {
+            if (showKeyMigration) {
+            SimpleOkCancelDialog(
+                title = stringResource(R.string.key_migration_title),
+                onClose = { ok ->
+                    showKeyMigration = false
+                    coroutineScope.launch {
+                        context.dataStore.edit { it[PrefKey.KEY_MIGRATION_SHOWN] = true }
+                    }
+                    if (ok) navController.navigate(SettingsScreenDestination.route)
+                }
+            ) {
+                Text(stringResource(R.string.key_migration_desc))
+            }
+        }
+        if (openUpdateDialog) {
                 SimpleOkCancelDialog(
                     title = stringResource(R.string.update_available),
                     onClose = { ok ->

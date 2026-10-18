@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="TypographyEllipsis">
-    <string name="app_name" translatable="false">UmaPatcher Edge</string>
+    <string name="app_name" translatable="false">UmaPatcher DX</string>
     <string name="home">Home</string>
     <string name="settings">Settings</string>
     <string name="about">Tungkol</string>
@@ -154,7 +154,7 @@
     <string name="shizuku_install_error">Nabigong i-install ang Shizuku dahil sa exception: %s</string>
     <string name="shizuku_install_fail_unexpected">Nag-disconnect ang serbisyo nang hindi inaasahan.</string>
     <string name="legacy_install_unknown_sources_required">Kailangan ng pahintulot</string>
-    <string name="legacy_install_unknown_sources_info">Kinakailangan ng Android na ibigay ang pahintulot na "Mag-install ng di-kilalang app" ("Install unknown apps") bago nito mabuksan ang system package installer. Pindutin ang OK para buksan ang settings page at ibigay ang pahintulot para sa UmaPatcher Edge, at bumalik dito pagkatapos ibigay ang pahintulot.</string>
+    <string name="legacy_install_unknown_sources_info">Kinakailangan ng Android na ibigay ang pahintulot na "Mag-install ng di-kilalang app" ("Install unknown apps") bago nito mabuksan ang system package installer. Pindutin ang OK para buksan ang settings page at ibigay ang pahintulot para sa UmaPatcher DX, at bumalik dito pagkatapos ibigay ang pahintulot.</string>
     <string name="legacy_install_failed">Nabigong buksan ang system package installer.</string>
     <string name="internal_files_marker_added">Dinagdag ang internal files directory marker.</string>
     <string name="internal_files_marker_failed">Nabigong idagdag ang internal files directory marker.</string>
