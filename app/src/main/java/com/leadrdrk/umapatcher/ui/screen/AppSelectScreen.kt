@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.leadrdrk.umapatcher.ui.component.GradientCard
 import com.leadrdrk.umapatcher.ui.component.ScreenHeader
 import androidx.compose.ui.Modifier
+import com.leadrdrk.umapatcher.ui.component.centeredContent
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +44,7 @@ fun AppSelectScreen(navigator: DestinationsNavigator) {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .centeredContent()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)

@@ -38,6 +38,10 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -48,6 +52,18 @@ import androidx.compose.ui.unit.dp
 
 /** Room left under scrolling content so the floating bottom bar never hides its last item. */
 val BottomBarClearance = 112.dp
+
+/** Widest a single column of content grows to on large screens, so lines stay readable. */
+val ContentMaxWidth = 840.dp
+
+/** True on screens wide enough for two panes, such as an unfolded Fold or a tablet. */
+@Composable
+fun isWideScreen() = LocalConfiguration.current.screenWidthDp >= 600
+
+/** Fills the screen but keeps the content a centered column no wider than [ContentMaxWidth]. */
+fun Modifier.centeredContent() = fillMaxSize()
+    .wrapContentWidth(Alignment.CenterHorizontally)
+    .widthIn(max = ContentMaxWidth)
 
 val SectionShape = RoundedCornerShape(18.dp)
 

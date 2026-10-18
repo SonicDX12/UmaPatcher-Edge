@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.leadrdrk.umapatcher.ui.component.centeredContent
 import androidx.compose.ui.res.stringResource
 import com.leadrdrk.umapatcher.R
 import com.leadrdrk.umapatcher.ui.component.BackButton
@@ -22,7 +23,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 @Destination
 @Composable
 fun OpenSourceLicensesScreen(navigator: DestinationsNavigator) {
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.centeredContent()) {
         Box(Modifier.padding(horizontal = 16.dp)) {
             ScreenHeader(
                 title = stringResource(R.string.open_source_licenses),

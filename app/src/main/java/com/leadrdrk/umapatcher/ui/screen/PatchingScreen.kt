@@ -47,6 +47,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import com.leadrdrk.umapatcher.ui.component.isWideScreen
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -320,13 +323,21 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
         else -> colors.error
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
+    val startedFacts = @Composable {
+        FactCard(
+            title = stringResource(R.string.patching_started),
+            titleColor = colors.primary,
+            facts = listOf(
+                stringResource(R.string.label_hachimi) to hachimiVersion.ifEmpty { "-" },
+                stringResource(R.string.install_method) to installMethodLabel,
+                stringResource(R.string.label_android) to "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+                stringResource(R.string.label_device) to "${Build.MANUFACTURER} ${Build.MODEL}",
+                stringResource(R.string.app_name) to BuildConfig.VERSION_NAME
+            )
+        )
+    }
+
+    val header = @Composable {
         Row(
             modifier = Modifier.padding(top = 24.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -373,8 +384,12 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                     .clip(CircleShape)
             )
         }
+    }
 
-        SectionCard(Modifier.weight(1f)) {
+    // On wide screens the facts sit in the left pane, so the log card holds the log alone
+    val wide = isWideScreen()
+    val logCard = @Composable { modifier: Modifier ->
+        SectionCard(modifier) {
             SelectionContainer {
                 Column(
                     modifier = Modifier
@@ -383,17 +398,7 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    FactCard(
-                        title = stringResource(R.string.patching_started),
-                        titleColor = colors.primary,
-                        facts = listOf(
-                            stringResource(R.string.label_hachimi) to hachimiVersion.ifEmpty { "-" },
-                            stringResource(R.string.install_method) to installMethodLabel,
-                            stringResource(R.string.label_android) to "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
-                            stringResource(R.string.label_device) to "${Build.MANUFACTURER} ${Build.MODEL}",
-                            stringResource(R.string.app_name) to BuildConfig.VERSION_NAME
-                        )
-                    )
+                    if (!wide) startedFacts()
                     for (line in log) LogLine(line)
                     if (completed) {
                         FactCard(
@@ -407,7 +412,9 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                 }
             }
         }
+    }
 
+    val buttons = @Composable {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ActionButton(
                 text = stringResource(if (completed && succeeded) R.string.done else R.string.close),
@@ -428,6 +435,44 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
                 },
                 modifier = Modifier.weight(1f)
             )
+        }
+    }
+
+    if (wide) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(0.42f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                header()
+                startedFacts()
+                Spacer(Modifier.weight(1f))
+                buttons()
+            }
+            logCard(
+                Modifier
+                    .weight(0.58f)
+                    .fillMaxHeight()
+            )
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            header()
+            logCard(Modifier.weight(1f))
+            buttons()
         }
     }
 }
@@ -500,15 +545,7 @@ private fun PatchSummary(
     onHome: () -> Unit
 ) {
     val green = Color(0xFF81C784)
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Spacer(Modifier.height(48.dp))
+    val identity = @Composable {
         Box(contentAlignment = Alignment.BottomEnd) {
             if (gameIcon != null) {
                 Image(
@@ -543,18 +580,23 @@ private fun PatchSummary(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+    }
+    val details = @Composable {
         DividedCard(rows.map { (icon, label, value) -> { InfoRow(label, value, icon) } })
-        Spacer(Modifier.height(16.dp))
+    }
+    val openButton = @Composable { modifier: Modifier ->
         if (onOpen != null && !saved) {
             ActionButton(
                 text = stringResource(R.string.open_game),
                 icon = Icons.Filled.PlayArrow,
                 primary = true,
                 onClick = onOpen,
-                modifier = Modifier.fillMaxWidth()
+                modifier = modifier
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    }
+    val navButtons = @Composable { scope: RowScope ->
+        with(scope) {
             ActionButton(
                 text = stringResource(R.string.logs),
                 icon = Icons.Filled.List,
@@ -568,5 +610,48 @@ private fun PatchSummary(
                 modifier = Modifier.weight(1f)
             )
         }
+    }
+
+    if (isWideScreen()) {
+        // Identity on the left, details on the right, every action in one row along the bottom
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(32.dp)
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) { identity() }
+                Box(Modifier.weight(1f)) { details() }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                navButtons(this)
+                openButton(Modifier.weight(2f))
+            }
+        }
+        return
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Spacer(Modifier.height(48.dp))
+        identity()
+        details()
+        Spacer(Modifier.height(16.dp))
+        openButton(Modifier.fillMaxWidth())
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) { navButtons(this) }
     }
 }

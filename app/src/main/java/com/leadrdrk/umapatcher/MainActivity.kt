@@ -19,6 +19,14 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import com.leadrdrk.umapatcher.ui.component.isWideScreen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -184,14 +192,24 @@ private fun MainContent() {
                 .fillMaxSize()
                 .glowBackground()
         ) {
-            if (rootInitialized.value) {
-                DestinationsNavHost(
-                    navGraph = NavGraphs.root,
-                    navController = navController,
-                    engine = navHostEngine
-                )
+            val wide = isWideScreen()
+            Row(Modifier.fillMaxSize()) {
+                if (wide) SideRail(navController, bottomBarState)
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {
+                    if (rootInitialized.value) {
+                        DestinationsNavHost(
+                            navGraph = NavGraphs.root,
+                            navController = navController,
+                            engine = navHostEngine
+                        )
+                    }
+                }
             }
-            BottomBar(navController, bottomBarState, Modifier.align(Alignment.BottomCenter))
+            if (!wide) BottomBar(navController, bottomBarState, Modifier.align(Alignment.BottomCenter))
             if (openUpdateDialog) {
                 SimpleOkCancelDialog(
                     title = stringResource(R.string.update_available),
@@ -271,20 +289,78 @@ private fun BottomBar(
                 BottomBarDestination.entries.forEach { destination ->
                     val selected by navController.isRouteOnBackStackAsState(destination.direction)
                     BottomBarItem(destination, selected) {
-                        if (selected) {
-                            navController.popBackStack(destination.direction, false)
-                        }
+                        navigateToTab(navController, destination, selected)
+                    }
+                }
+            }
+        }
+    }
+}
 
-                        navController.navigate(destination.direction.route) {
-                            popUpTo(NavGraphs.root.route) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
+private fun navigateToTab(navController: NavHostController, destination: BottomBarDestination, selected: Boolean) {
+    if (selected) {
+        navController.popBackStack(destination.direction, false)
+    }
+
+    navController.navigate(destination.direction.route) {
+        popUpTo(NavGraphs.root.route) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+/** Large-screen counterpart of [BottomBar]: tab pills stacked in a column left of the content. */
+@Composable
+private fun SideRail(navController: NavHostController, bottomBarState: MutableState<Boolean>) {
+    AnimatedVisibility(
+        visible = bottomBarState.value,
+        enter = slideInHorizontally(initialOffsetX = { -it }),
+        exit = slideOutHorizontally(targetOffsetX = { -it })
+    ) {
+        Row {
+            Column(
+                modifier = Modifier
+                    .width(200.dp)
+                    .fillMaxHeight()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+            ) {
+                BottomBarDestination.entries.forEach { destination ->
+                    val selected by navController.isRouteOnBackStackAsState(destination.direction)
+                    val label = stringResource(destination.label)
+                    Surface(
+                        onClick = { navigateToTab(navController, destination, selected) },
+                        shape = CircleShape,
+                        color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+                            else MaterialTheme.colorScheme.onSurface,
+                        border = BorderStroke(
+                            if (selected) 1.5.dp else 1.dp,
+                            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 14.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(if (selected) destination.iconSelected else destination.iconNotSelected, null)
+                            Spacer(Modifier.width(12.dp))
+                            Text(label, style = MaterialTheme.typography.titleMedium)
                         }
                     }
                 }
             }
+            Box(
+                Modifier
+                    .padding(vertical = 48.dp)
+                    .width(1.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+            )
         }
     }
 }

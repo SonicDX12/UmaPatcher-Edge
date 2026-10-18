@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,6 +61,7 @@ import com.leadrdrk.umapatcher.ui.component.GradientCard
 import com.leadrdrk.umapatcher.ui.component.Pill
 import com.leadrdrk.umapatcher.ui.component.ScreenHeader
 import com.leadrdrk.umapatcher.ui.component.SectionTitle
+import com.leadrdrk.umapatcher.ui.component.isWideScreen
 import com.leadrdrk.umapatcher.ui.patcher.AppPatcherCard
 import com.leadrdrk.umapatcher.ui.screen.destinations.AppSelectScreenDestination
 import com.leadrdrk.umapatcher.utils.safeNavigate
@@ -72,18 +74,38 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 @Destination
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
+    @Composable
+    fun ScrollingColumn(modifier: Modifier, content: @Composable () -> Unit) = Column(
+        modifier = modifier
+            .fillMaxHeight()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        ScreenHeader(stringResource(R.string.app_name))
-        InstallStatusCard(navigator)
-        AppPatcherCard(navigator)
-        PluginSection()
-        Spacer(Modifier.height(BottomBarClearance))
+    ) { content() }
+
+    if (isWideScreen()) {
+        // Game and plugins on the left, the patcher itself on the right
+        Row(Modifier.fillMaxSize()) {
+            ScrollingColumn(Modifier.weight(1f)) {
+                ScreenHeader(stringResource(R.string.app_name))
+                InstallStatusCard(navigator)
+                PluginSection()
+                Spacer(Modifier.height(16.dp))
+            }
+            ScrollingColumn(Modifier.weight(1f)) {
+                Spacer(Modifier.height(24.dp))
+                AppPatcherCard(navigator)
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+    } else {
+        ScrollingColumn(Modifier.fillMaxSize()) {
+            ScreenHeader(stringResource(R.string.app_name))
+            InstallStatusCard(navigator)
+            AppPatcherCard(navigator)
+            PluginSection()
+            Spacer(Modifier.height(BottomBarClearance))
+        }
     }
 }
 

@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.leadrdrk.umapatcher.ui.component.centeredContent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -269,7 +270,7 @@ fun QoopyDownloadScreen(navigator: DestinationsNavigator) {
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.centeredContent()) {
         Box(Modifier.padding(horizontal = 16.dp)) {
             ScreenHeader(
                 title = stringResource(R.string.qoopy_download_title),
