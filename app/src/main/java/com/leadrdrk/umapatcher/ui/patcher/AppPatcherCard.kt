@@ -8,13 +8,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,10 +29,20 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import com.leadrdrk.umapatcher.core.GameUpdateChecker
+import com.leadrdrk.umapatcher.ui.component.ActionButton
+import com.leadrdrk.umapatcher.ui.component.ChoiceRow
+import com.leadrdrk.umapatcher.ui.component.DividedCard
+import com.leadrdrk.umapatcher.ui.component.Pill
+import com.leadrdrk.umapatcher.ui.component.SectionTitle
+import com.leadrdrk.umapatcher.ui.screen.destinations.QoopyDownloadScreenDestination
+import com.leadrdrk.umapatcher.utils.safeNavigate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -52,7 +59,6 @@ import com.leadrdrk.umapatcher.core.getPrefValue
 import com.leadrdrk.umapatcher.patcher.AppPatcher
 import com.leadrdrk.umapatcher.patcher.LegacyInstaller
 import com.leadrdrk.umapatcher.shizuku.ShizukuState
-import com.leadrdrk.umapatcher.ui.component.RadioGroupOption
 import com.leadrdrk.umapatcher.ui.component.SimpleOkCancelDialog
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
@@ -358,161 +364,133 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         if (deepLinkMissingFiles == null) startPatching()
     }
 
-    PatcherCard(
-        label = stringResource(R.string.app_patcher_label),
-        icon = { Icon(painterResource(R.drawable.ic_apk_install), null) },
-        buttons = {
-            val isButtonEnabled = when {
-                !useLatestVersion && customSoUri == null -> false
-                installMethod.intValue == 2 -> true
-                else -> fileUris.isNotEmpty()
-            }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val latestGameVersion = GameUpdateChecker.latestVersion.value
+    val needsFiles = installMethod.intValue != 2
+    val isButtonEnabled = when {
+        !useLatestVersion && customSoUri == null -> false
+        !needsFiles -> true
+        else -> fileUris.isNotEmpty()
+    }
 
-            Button(
-                enabled = isButtonEnabled,
-                onClick = { startPatching() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-            ) {
-                Text(stringResource(R.string.patch), style = MaterialTheme.typography.titleMedium)
-            }
-        }
-    ) {
-        // Custom .so file picker (shown when "use latest version" is disabled in settings)
-        if (!useLatestVersion) {
-            Spacer(Modifier.height(16.dp))
-            FileSourceTile(
-                icon = painterResource(R.drawable.ic_file_open),
-                title = stringResource(R.string.select_custom_so),
-                detail = customSoFileName ?: stringResource(R.string.no_custom_so_selected),
-                hint = stringResource(R.string.custom_so_supported_files),
-                selected = customSoFileName != null,
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    val intent = Intent(Intent.ACTION_GET_CONTENT)
-                        .apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "*/*"
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionTitle(stringResource(R.string.apk_source_title), Icons.Filled.Search)
+        DividedCard(
+            listOfNotNull(
+                {
+                    ChoiceRow(
+                        title = stringResource(R.string.qoopy_download_apk),
+                        subtitle = latestGameVersion
+                            ?.let { stringResource(R.string.new_version_available).format(it) }
+                            ?: stringResource(R.string.qoopy_download_apk_desc),
+                        selected = false,
+                        enabled = needsFiles,
+                        leading = { Icon(painterResource(R.drawable.ic_cloud_download), null, tint = MaterialTheme.colorScheme.primary) },
+                        badge = { Icon(Icons.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.primary) },
+                        onClick = {
+                            safeNavigate(lifecycleOwner) {
+                                navigator.navigate(QoopyDownloadScreenDestination)
+                            }
                         }
-                    customSoLauncher.launch(intent)
-                }
-            )
-        }
-
-        val shizukuStatusText = if (isShizukuAvailable) stringResource(R.string.shizuku_install_available) else stringResource(R.string.shizuku_install_unavailable)
-        val shizukuStatusColor = if (isShizukuAvailable) Color(0xFF388E3C) else MaterialTheme.colorScheme.error
-
-        RadioGroupOption(
-            title = stringResource(R.string.install_method),
-            desc = stringResource(R.string.install_method_desc),
-            choices = arrayOf(
-                stringResource(R.string.save_patched_file),
-                stringResource(R.string.normal_install),
-                stringResource(R.string.direct_install),
-                stringResource(R.string.shizuku_install),
-                stringResource(R.string.legacy_install)
-            ),
-            state = installMethod,
-            choiceContent = { index, text ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.bodyMedium
                     )
-                    if(index == 3) {
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = shizukuStatusText,
-                            color = shizukuStatusColor,
-                            style = MaterialTheme.typography.bodySmall
+                },
+                cachedEntry?.let { entry ->
+                    {
+                        ChoiceRow(
+                            title = stringResource(R.string.use_cached_files),
+                            subtitle = stringResource(R.string.n_files_selected).format(entry.files.size),
+                            selected = fileSource == FileSource.CACHE,
+                            enabled = needsFiles,
+                            badge = { Pill("v" + entry.version) },
+                            onClick = {
+                                fileUris = entry.files
+                                    .map { LegacyInstaller.getApkUri(context, it) }
+                                    .toTypedArray()
+                                fileSource = FileSource.CACHE
+                            }
                         )
                     }
-                }
-            }
-        )
-        if (installMethod.intValue != 2) {
-            Spacer(Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                FileSourceTile(
-                    icon = painterResource(R.drawable.ic_file_open),
-                    title = stringResource(R.string.tap_to_select_file),
-                    detail = stringResource(R.string.n_files_selected)
-                        .format(if (fileSource == FileSource.MANUAL) fileUris.size else 0),
-                    hint = stringResource(R.string.app_patcher_supported_files),
-                    selected = fileSource == FileSource.MANUAL,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                            .apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                                type = "*/*"
-                            }
-                        fileSelectLauncher.launch(intent)
-                    }
-                )
-
-                cachedEntry?.let { entry ->
-                    FileSourceTile(
-                        icon = painterResource(R.drawable.ic_cloud_download),
-                        title = stringResource(R.string.use_cached_files),
-                        detail = stringResource(R.string.n_files_selected).format(entry.files.size),
-                        hint = stringResource(R.string.version_name_prefix) + entry.version,
-                        selected = fileSource == FileSource.CACHE,
-                        modifier = Modifier.weight(1f),
+                },
+                {
+                    ChoiceRow(
+                        title = stringResource(R.string.tap_to_select_file),
+                        subtitle = if (fileSource == FileSource.MANUAL)
+                            stringResource(R.string.n_files_selected).format(fileUris.size)
+                        else
+                            stringResource(R.string.app_patcher_supported_files),
+                        selected = fileSource == FileSource.MANUAL,
+                        enabled = needsFiles,
                         onClick = {
-                            fileUris = entry.files
-                                .map { LegacyInstaller.getApkUri(context, it) }
-                                .toTypedArray()
-                            fileSource = FileSource.CACHE
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                                .apply {
+                                    addCategory(Intent.CATEGORY_OPENABLE)
+                                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                                    type = "*/*"
+                                }
+                            fileSelectLauncher.launch(intent)
                         }
                     )
                 }
-            }
-        }
-    }
-}
+            )
+        )
 
-/** Selectable tile for one source of input files; the chosen one is outlined in the primary color. */
-@Composable
-private fun FileSourceTile(
-    icon: Painter,
-    title: String,
-    detail: String,
-    hint: String,
-    selected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    val colors = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(14.dp)
-    Surface(
-        onClick = onClick,
-        shape = shape,
-        color = if (selected) colors.primaryContainer else colors.surface,
-        contentColor = if (selected) colors.onPrimaryContainer else colors.onSurface,
-        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) colors.primary else colors.outlineVariant),
-        modifier = modifier
-    ) {
-        Row(Modifier.padding(16.dp)) {
-            Icon(icon, null, tint = colors.primary)
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(4.dp))
-                Text(text = detail, style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = hint,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (selected) colors.onPrimaryContainer.copy(alpha = 0.7f) else colors.onSurfaceVariant
+        // Custom .so file picker (shown when "use latest version" is disabled in settings)
+        if (!useLatestVersion) {
+            SectionTitle(stringResource(R.string.select_custom_so), Icons.Filled.Build)
+            DividedCard(listOf {
+                ChoiceRow(
+                    title = customSoFileName ?: stringResource(R.string.no_custom_so_selected),
+                    subtitle = stringResource(R.string.custom_so_supported_files),
+                    selected = customSoFileName != null,
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_GET_CONTENT)
+                            .apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "*/*"
+                            }
+                        customSoLauncher.launch(intent)
+                    }
+                )
+            })
+        }
+
+        SectionTitle(stringResource(R.string.install_method), Icons.Filled.Settings)
+        val methods = arrayOf(
+            stringResource(R.string.save_patched_file),
+            stringResource(R.string.normal_install),
+            stringResource(R.string.direct_install),
+            stringResource(R.string.shizuku_install),
+            stringResource(R.string.legacy_install)
+        )
+        val shizukuStatusText = if (isShizukuAvailable) stringResource(R.string.shizuku_install_available) else stringResource(R.string.shizuku_install_unavailable)
+        DividedCard(methods.mapIndexed { index, label ->
+            {
+                ChoiceRow(
+                    title = label,
+                    selected = installMethod.intValue == index,
+                    onClick = { installMethod.intValue = index },
+                    badge = if (index == 3) {
+                        {
+                            Pill(
+                                text = shizukuStatusText.trim('(', ')'),
+                                containerColor = if (isShizukuAvailable) Color(0xFF1B5E20) else MaterialTheme.colorScheme.errorContainer,
+                                contentColor = if (isShizukuAvailable) Color(0xFFC8E6C9) else MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    } else null
                 )
             }
-        }
+        })
+
+        Spacer(Modifier.height(8.dp))
+        ActionButton(
+            text = stringResource(R.string.patch),
+            icon = Icons.Filled.Build,
+            primary = true,
+            enabled = isButtonEnabled,
+            onClick = { startPatching() },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

@@ -23,7 +23,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -276,4 +280,150 @@ fun ToggleSwitch(checked: Boolean, enabled: Boolean = true) {
             )
         }
     )
+}
+
+/** Small rounded label, such as a status or a version. */
+@Composable
+fun Pill(
+    text: String,
+    icon: ImageVector? = null,
+    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer
+) {
+    Surface(shape = CircleShape, color = containerColor, contentColor = contentColor) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (icon != null) Icon(icon, null, Modifier.size(16.dp))
+            Text(text, style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+/** One labelled value of an info card: small label above, value below. */
+@Composable
+fun InfoRow(
+    label: String,
+    value: String,
+    icon: ImageVector? = null,
+    trailing: (@Composable () -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(text = value, style = MaterialTheme.typography.bodyLarge)
+        }
+        trailing?.invoke()
+    }
+}
+
+/** Card stacking [rows] with dividers between them. */
+@Composable
+fun DividedCard(
+    rows: List<@Composable () -> Unit>,
+    modifier: Modifier = Modifier,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant
+) {
+    SectionCard(modifier = modifier, borderColor = borderColor) {
+        rows.forEachIndexed { i, row ->
+            if (i > 0) Divider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+            row()
+        }
+    }
+}
+
+/** Selectable row of a [DividedCard]: a check circle, a title, an optional subtitle and badge. */
+@Composable
+fun ChoiceRow(
+    title: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    subtitle: String? = null,
+    enabled: Boolean = true,
+    leading: (@Composable () -> Unit)? = null,
+    badge: (@Composable () -> Unit)? = null
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick)
+            .alpha(if (enabled) 1f else 0.38f)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (leading != null) {
+            Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) { leading() }
+        } else if (selected) {
+            Surface(shape = CircleShape, color = colors.primary, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Filled.Check, null, Modifier.padding(6.dp), tint = colors.onPrimary)
+            }
+        } else {
+            Box(
+                Modifier
+                    .size(32.dp)
+                    .border(2.dp, colors.outline, CircleShape)
+            )
+        }
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            )
+            if (!subtitle.isNullOrEmpty()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.onSurfaceVariant
+                )
+            }
+        }
+        badge?.invoke()
+    }
+}
+
+/** Large pill-shaped action button; [primary] fills it, otherwise it is outlined. */
+@Composable
+fun ActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    primary: Boolean = false,
+    enabled: Boolean = true
+) {
+    val content: @Composable RowScope.() -> Unit = {
+        if (icon != null) {
+            Icon(icon, null)
+            Spacer(Modifier.width(12.dp))
+        }
+        Text(text, style = MaterialTheme.typography.titleMedium)
+    }
+    val buttonModifier = modifier.height(56.dp)
+    if (primary) {
+        Button(onClick = onClick, enabled = enabled, modifier = buttonModifier, content = content)
+    } else {
+        OutlinedButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = buttonModifier,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+            content = content
+        )
+    }
 }

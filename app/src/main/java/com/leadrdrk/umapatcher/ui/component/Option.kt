@@ -84,23 +84,6 @@ fun rememberDataStoreStringState(
     }
 }
 
-@Composable
-fun OptionTitleAndDesc(
-    title: String,
-    desc: String
-) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.bodyLarge
-    )
-    Spacer(Modifier.height(4.dp))
-    Text(
-        text = desc,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
 /** Settings item showing the current value; tapping it edits the value in a dialog. */
 @Composable
 fun StringOption(
@@ -139,47 +122,6 @@ fun StringOption(
                         Text(placeholder)
                 }
             )
-        }
-    }
-}
-
-@Composable
-fun RadioGroupOption(
-    title: String,
-    desc: String,
-    choices: Array<String>,
-    state: MutableState<Int>,
-    choiceContent: @Composable (index: Int, text: String) -> Unit = { _, text ->
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Column(Modifier.padding(bottom = 8.dp)) {
-            OptionTitleAndDesc(title, desc)
-        }
-        choices.forEachIndexed { i, choice ->
-            val selected = state.value == i
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
-                    .clickable { state.value = i }
-                    .padding(horizontal = 4.dp)
-            ) {
-                RadioButton(selected = selected, onClick = { state.value = i })
-                Spacer(Modifier.width(8.dp))
-                choiceContent(i, choice)
-            }
         }
     }
 }

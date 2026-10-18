@@ -17,6 +17,7 @@
     <string name="patch">Patch</string>
     <string name="select_an_app">Select an app</string>
     <string name="n_files_selected">%d files selected</string>
+    <string name="apk_source_title">Game APK</string>
     <string name="tap_to_select_file">Tap here to select files</string>
     <string name="app_patcher_supported_files">Supported files: APK / Split APKs, XAPK</string>
 
