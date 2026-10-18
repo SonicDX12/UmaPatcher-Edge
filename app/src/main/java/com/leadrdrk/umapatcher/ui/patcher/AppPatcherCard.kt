@@ -16,7 +16,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -61,15 +60,10 @@ import com.leadrdrk.umapatcher.patcher.LegacyInstaller
 import com.leadrdrk.umapatcher.shizuku.ShizukuState
 import com.leadrdrk.umapatcher.ui.component.SimpleOkCancelDialog
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
-private const val INSTALL_METHOD_SAVE_DELAY_MILLIS = 5000L
 private enum class FileSource { MANUAL, CACHE }
 
 @Composable
@@ -102,7 +96,6 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
     var stateLoaded by remember { mutableStateOf(false) }
     var installMethodLoaded by rememberSaveable { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    val installMethodSaveScope = remember { CoroutineScope(SupervisorJob()) }
 
     // Restore options and the persisted file URIs from preferences
     LaunchedEffect(true) {
@@ -155,23 +148,12 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         stateLoaded = true
     }
 
+    // Saved as soon as it changes, so the choice survives the app being swiped away right after
     LaunchedEffect(installMethodLoaded) {
         if (!installMethodLoaded) return@LaunchedEffect
         snapshotFlow { installMethod.intValue }
             .drop(1)
-            .collectLatest { method ->
-                delay(INSTALL_METHOD_SAVE_DELAY_MILLIS)
-                saveInstallMethod(context, method)
-            }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            if (installMethodLoaded)
-                installMethodSaveScope.launch {
-                    saveInstallMethod(context, installMethod.intValue)
-                }
-        }
+            .collect { method -> saveInstallMethod(context, method) }
     }
 
     val fileSelectLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
