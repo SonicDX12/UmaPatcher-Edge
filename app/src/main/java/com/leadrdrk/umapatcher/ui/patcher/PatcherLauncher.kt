@@ -3,6 +3,7 @@ package com.leadrdrk.umapatcher.ui.patcher
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -27,14 +28,23 @@ object PatcherLauncher {
     var succeeded by mutableStateOf(false)
         private set
 
+    /** Index of the install method in the patcher card: 0=Save, 1=Normal, 2=Direct, 3=Shizuku, 4=Legacy. */
+    var installMethod = 0
+        private set
+    var startedAt = 0L
+        private set
+    var finishedAt by mutableLongStateOf(0L)
+        private set
+
     var task by mutableStateOf("")
     var progress by mutableFloatStateOf(-1f)
     val logEntries = mutableStateListOf<String>()
 
-    fun launch(navigator: DestinationsNavigator, patcher: Patcher) {
+    fun launch(navigator: DestinationsNavigator, installMethod: Int, patcher: Patcher) {
         if (patching) return
 
         this.patcher = patcher
+        this.installMethod = installMethod
         completed = false
         succeeded = false
         task = ""
@@ -72,6 +82,7 @@ object PatcherLauncher {
         if (patching || completed) return
 
         patching = true
+        startedAt = System.currentTimeMillis()
         withContext(Dispatchers.IO) {
             try {
                 val success = patcher.safeRun(context)
@@ -83,6 +94,7 @@ object PatcherLauncher {
                     else R.string.patch_failed_msg
                 ))
             } finally {
+                finishedAt = System.currentTimeMillis()
                 patching = false
                 completed = true
             }

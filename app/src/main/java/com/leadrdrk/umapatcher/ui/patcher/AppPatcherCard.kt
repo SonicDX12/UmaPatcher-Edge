@@ -228,6 +228,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
             if (grantResult == PackageManager.PERMISSION_GRANTED) {
                 PatcherLauncher.launch(
                     navigator,
+                    installMethod.intValue,
                     AppPatcher(
                         fileUris = fileUris,
                         install = true,
@@ -317,6 +318,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
             if(Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 PatcherLauncher.launch(
                     navigator,
+                    installMethod.intValue,
                     AppPatcher(
                         fileUris,
                         install = true,
@@ -333,6 +335,7 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
         }else {
             PatcherLauncher.launch(
                 navigator,
+                installMethod.intValue,
                 AppPatcher(
                     fileUris = if (installMethod.intValue == 2) arrayOf() else fileUris,
                     install = installMethod.intValue == 1,

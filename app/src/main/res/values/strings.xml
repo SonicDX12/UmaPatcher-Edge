@@ -38,6 +38,26 @@
     <string name="qoopy_checksum_mismatch">Downloaded file is corrupted (checksum mismatch).</string>
     <string name="retry">Retry</string>
 
+    <!-- Patching screen -->
+    <string name="patching_started">Patching started</string>
+    <string name="patch_ready">All done! 🎉</string>
+    <string name="patching_success_title">Patching successful</string>
+    <string name="patching_failed_title">Patching failed</string>
+    <string name="label_hachimi">Hachimi Edge</string>
+    <string name="label_android">Android</string>
+    <string name="label_device">Device</string>
+    <string name="label_duration">Time</string>
+    <string name="copy_logs">Copy</string>
+    <string name="logs_copied">Logs copied to clipboard.</string>
+    <string name="logs">Logs</string>
+    <string name="done">Done</string>
+    <string name="close">Close</string>
+    <string name="open_game">Open</string>
+    <string name="status_installed">Installed</string>
+    <string name="status_saved">Saved</string>
+    <string name="patched_installed_desc">Your game is patched and installed!</string>
+    <string name="patched_saved_desc">Your patched game has been saved.</string>
+
     <!-- Settings -->
     <string name="settings_section_patching">Patching</string>
     <string name="settings_section_hachimi">Hachimi</string>
