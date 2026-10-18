@@ -1,14 +1,19 @@
 package com.leadrdrk.umapatcher.ui.screen
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.leadrdrk.umapatcher.R
 import com.leadrdrk.umapatcher.ui.component.BackButton
-import com.leadrdrk.umapatcher.ui.component.TopBar
+import com.leadrdrk.umapatcher.ui.component.ScreenHeader
 import com.mikepenz.aboutlibraries.ui.compose.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.ramcosta.composedestinations.annotation.Destination
@@ -17,20 +22,19 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 @Destination
 @Composable
 fun OpenSourceLicensesScreen(navigator: DestinationsNavigator) {
-    Scaffold(
-        topBar = {
-            TopBar(
+    Column(Modifier.fillMaxSize()) {
+        Box(Modifier.padding(horizontal = 16.dp)) {
+            ScreenHeader(
                 title = stringResource(R.string.open_source_licenses),
                 navigationIcon = { BackButton(navigator) }
             )
         }
-    ) { contentPadding ->
         LibrariesContainer(
             modifier = Modifier
-                .fillMaxSize(),
-            contentPadding = contentPadding,
+                .weight(1f)
+                .fillMaxWidth(),
             colors = LibraryDefaults.libraryColors(
-                backgroundColor = MaterialTheme.colorScheme.background,
+                backgroundColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 badgeBackgroundColor = MaterialTheme.colorScheme.primary,
                 badgeContentColor = MaterialTheme.colorScheme.onPrimary,

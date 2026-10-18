@@ -6,12 +6,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.graphics.drawable.toBitmap
@@ -54,7 +52,7 @@ import com.leadrdrk.umapatcher.core.PluginManager
 import com.leadrdrk.umapatcher.ui.component.BottomBarClearance
 import com.leadrdrk.umapatcher.ui.component.ScreenHeader
 import com.leadrdrk.umapatcher.ui.component.SectionCard
-import com.leadrdrk.umapatcher.ui.component.SectionShape
+import com.leadrdrk.umapatcher.ui.component.GradientCard
 import com.leadrdrk.umapatcher.ui.patcher.AppPatcherCard
 import com.leadrdrk.umapatcher.ui.patcher.QoopyDownloadCard
 import com.leadrdrk.umapatcher.ui.screen.destinations.AppSelectScreenDestination
@@ -94,25 +92,13 @@ fun InstallStatusCard(navigator: DestinationsNavigator) {
         packageInfo?.applicationInfo?.let { pm.getApplicationIcon(it).toBitmap().asImageBitmap() }
     }
     val colors = MaterialTheme.colorScheme
-    val shape = SectionShape
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(
-                Brush.linearGradient(
-                    listOf(colors.tertiaryContainer, colors.primaryContainer, colors.secondaryContainer)
-                )
-            )
-            .border(1.dp, colors.outline.copy(alpha = 0.5f), shape)
-            .clickable {
-                safeNavigate(lifecycleOwner) {
-                    navigator.navigate(AppSelectScreenDestination)
-                }
+    GradientCard(
+        onClick = {
+            safeNavigate(lifecycleOwner) {
+                navigator.navigate(AppSelectScreenDestination)
             }
-            .padding(20.dp),
-        verticalAlignment = Alignment.CenterVertically
+        }
     ) {
         if (icon != null) {
             Image(

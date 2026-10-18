@@ -6,8 +6,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,9 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,6 +32,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -371,61 +370,34 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
 
             Button(
                 enabled = isButtonEnabled,
-                onClick = { startPatching() }
+                onClick = { startPatching() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
             ) {
-                Text(stringResource(R.string.patch))
+                Text(stringResource(R.string.patch), style = MaterialTheme.typography.titleMedium)
             }
         }
     ) {
         // Custom .so file picker (shown when "use latest version" is disabled in settings)
         if (!useLatestVersion) {
             Spacer(Modifier.height(16.dp))
-            ElevatedCard(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(Intent.ACTION_GET_CONTENT)
-                            .apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
-                            }
-                        customSoLauncher.launch(intent)
-                    }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Icon(painterResource(R.drawable.ic_file_open), null)
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = stringResource(R.string.select_custom_so),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = if (customSoFileName != null)
-                                customSoFileName!!
-                            else
-                                stringResource(R.string.no_custom_so_selected),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.custom_so_supported_files),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            FileSourceTile(
+                icon = painterResource(R.drawable.ic_file_open),
+                title = stringResource(R.string.select_custom_so),
+                detail = customSoFileName ?: stringResource(R.string.no_custom_so_selected),
+                hint = stringResource(R.string.custom_so_supported_files),
+                selected = customSoFileName != null,
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                        .apply {
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                            type = "*/*"
+                        }
+                    customSoLauncher.launch(intent)
                 }
-            }
-            Spacer(Modifier.height(16.dp))
-            Divider()
+            )
         }
 
         val shizukuStatusText = if (isShizukuAvailable) stringResource(R.string.shizuku_install_available) else stringResource(R.string.shizuku_install_unavailable)
@@ -465,100 +437,80 @@ fun AppPatcherCard(navigator: DestinationsNavigator) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                ElevatedCard(
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .let {
-                            if (fileSource == FileSource.MANUAL)
-                                it.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
-                            else it
-                        }
-                        .clickable {
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-                                .apply {
-                                    addCategory(Intent.CATEGORY_OPENABLE)
-                                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                                    type = "*/*"
-                                }
-                            fileSelectLauncher.launch(intent)
-                        }
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Icon(painterResource(R.drawable.ic_file_open), null)
-                        Spacer(Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = stringResource(R.string.tap_to_select_file),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.n_files_selected).format(fileUris.size),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.app_patcher_supported_files),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                FileSourceTile(
+                    icon = painterResource(R.drawable.ic_file_open),
+                    title = stringResource(R.string.tap_to_select_file),
+                    detail = stringResource(R.string.n_files_selected)
+                        .format(if (fileSource == FileSource.MANUAL) fileUris.size else 0),
+                    hint = stringResource(R.string.app_patcher_supported_files),
+                    selected = fileSource == FileSource.MANUAL,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                            .apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                                type = "*/*"
+                            }
+                        fileSelectLauncher.launch(intent)
                     }
-                }
+                )
 
                 cachedEntry?.let { entry ->
-                    ElevatedCard(
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .let {
-                                if (fileSource == FileSource.CACHE)
-                                    it.border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
-                                else it
-                            }
-                            .clickable {
-                                fileUris = entry.files
-                                    .map { LegacyInstaller.getApkUri(context, it) }
-                                    .toTypedArray()
-                                fileSource = FileSource.CACHE
-                            }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            Icon(painterResource(R.drawable.ic_cloud_download), null)
-                            Spacer(Modifier.width(16.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.use_cached_files),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(R.string.n_files_selected).format(entry.files.size),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(R.string.version_name_prefix) + entry.version,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                    FileSourceTile(
+                        icon = painterResource(R.drawable.ic_cloud_download),
+                        title = stringResource(R.string.use_cached_files),
+                        detail = stringResource(R.string.n_files_selected).format(entry.files.size),
+                        hint = stringResource(R.string.version_name_prefix) + entry.version,
+                        selected = fileSource == FileSource.CACHE,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            fileUris = entry.files
+                                .map { LegacyInstaller.getApkUri(context, it) }
+                                .toTypedArray()
+                            fileSource = FileSource.CACHE
                         }
-                    }
+                    )
                 }
+            }
+        }
+    }
+}
+
+/** Selectable tile for one source of input files; the chosen one is outlined in the primary color. */
+@Composable
+private fun FileSourceTile(
+    icon: Painter,
+    title: String,
+    detail: String,
+    hint: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(14.dp)
+    Surface(
+        onClick = onClick,
+        shape = shape,
+        color = if (selected) colors.primaryContainer else colors.surface,
+        contentColor = if (selected) colors.onPrimaryContainer else colors.onSurface,
+        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) colors.primary else colors.outlineVariant),
+        modifier = modifier
+    ) {
+        Row(Modifier.padding(16.dp)) {
+            Icon(icon, null, tint = colors.primary)
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(text = detail, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = hint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (selected) colors.onPrimaryContainer.copy(alpha = 0.7f) else colors.onSurfaceVariant
+                )
             }
         }
     }

@@ -1,7 +1,11 @@
 package com.leadrdrk.umapatcher.ui.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,6 +77,7 @@ fun SectionCard(
 fun ScreenHeader(
     title: String,
     subtitle: String? = null,
+    navigationIcon: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     Row(
@@ -81,6 +86,10 @@ fun ScreenHeader(
             .padding(start = 4.dp, top = 24.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (navigationIcon != null) {
+            navigationIcon()
+            Spacer(Modifier.width(8.dp))
+        }
         Column(Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -97,6 +106,31 @@ fun ScreenHeader(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), content = actions)
     }
+}
+
+/** Card washed with a diagonal gradient of the theme's containers, for the app it stands for. */
+@Composable
+fun GradientCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(SectionShape)
+            .background(
+                Brush.linearGradient(
+                    listOf(colors.tertiaryContainer, colors.primaryContainer, colors.secondaryContainer)
+                )
+            )
+            .border(1.dp, colors.outline.copy(alpha = 0.5f), SectionShape)
+            .clickable(onClick = onClick)
+            .padding(20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content
+    )
 }
 
 /** Round tonal button used in [ScreenHeader]. */

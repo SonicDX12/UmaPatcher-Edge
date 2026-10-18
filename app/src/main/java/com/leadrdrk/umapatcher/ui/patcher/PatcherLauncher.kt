@@ -24,6 +24,8 @@ object PatcherLauncher {
         private set
     var completed by mutableStateOf(false)
         private set
+    var succeeded by mutableStateOf(false)
+        private set
 
     var task by mutableStateOf("")
     var progress by mutableFloatStateOf(-1f)
@@ -34,6 +36,7 @@ object PatcherLauncher {
 
         this.patcher = patcher
         completed = false
+        succeeded = false
         task = ""
         progress = -1f
         logEntries.clear()
@@ -72,6 +75,7 @@ object PatcherLauncher {
         withContext(Dispatchers.IO) {
             try {
                 val success = patcher.safeRun(context)
+                succeeded = success
                 progress = 1f
                 task = context.getString(R.string.completed)
                 log(context.getString(

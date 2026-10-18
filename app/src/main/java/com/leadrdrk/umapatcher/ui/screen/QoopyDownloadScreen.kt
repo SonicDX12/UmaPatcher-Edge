@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -47,7 +45,10 @@ import com.leadrdrk.umapatcher.core.QoopyApp
 import com.leadrdrk.umapatcher.core.QoopyCache
 import com.leadrdrk.umapatcher.patcher.LegacyInstaller
 import com.leadrdrk.umapatcher.ui.component.BackButton
-import com.leadrdrk.umapatcher.ui.component.TopBar
+import com.leadrdrk.umapatcher.ui.component.ScreenHeader
+import com.leadrdrk.umapatcher.ui.component.SectionCard
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import com.leadrdrk.umapatcher.ui.patcher.QoopyDownloadResult
 import com.leadrdrk.umapatcher.utils.bytesToHex
 import com.leadrdrk.umapatcher.utils.downloadFileAndDigest
@@ -268,18 +269,17 @@ fun QoopyDownloadScreen(navigator: DestinationsNavigator) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopBar(
+    Column(Modifier.fillMaxSize()) {
+        Box(Modifier.padding(horizontal = 16.dp)) {
+            ScreenHeader(
                 title = stringResource(R.string.qoopy_download_title),
                 navigationIcon = { BackButton(navigator, enabled = !downloading) }
             )
         }
-    ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
+                .weight(1f)
+                .fillMaxWidth()
         ) {
             val app = appInfo
             if (app == null) {
@@ -319,8 +319,8 @@ fun QoopyDownloadScreen(navigator: DestinationsNavigator) {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                    SectionCard {
+                        Column(modifier = Modifier.padding(20.dp)) {
                             Text(
                                 text = app.display_name ?: app.app_name ?: "",
                                 style = MaterialTheme.typography.titleLarge
@@ -363,14 +363,22 @@ fun QoopyDownloadScreen(navigator: DestinationsNavigator) {
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = downloadProgress,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(CircleShape)
                         )
                     } else {
                         Button(
                             onClick = { startDownload() },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
                         ) {
-                            Text(stringResource(R.string.qoopy_download_button))
+                            Text(
+                                stringResource(R.string.qoopy_download_button),
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                     }
 

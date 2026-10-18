@@ -39,7 +39,7 @@ fun PatcherCard(
             }
             Spacer(Modifier.height(4.dp))
             content()
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),

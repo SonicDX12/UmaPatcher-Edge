@@ -1,6 +1,11 @@
 package com.leadrdrk.umapatcher.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -155,36 +159,27 @@ fun RadioGroupOption(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(top = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp, 16.dp, 16.dp, bottom = 8.dp)
-        ) {
+        Column(Modifier.padding(bottom = 8.dp)) {
             OptionTitleAndDesc(title, desc)
         }
-        Column {
-            choices.forEachIndexed { i, choice ->
-                Row(
-                    modifier = Modifier
-                        .clickable { state.value = i }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .fillMaxWidth()
-                    ) {
-                        RadioButton(
-                            selected = (state.value == i),
-                            onClick = { state.value = i }
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        choiceContent(i, choice)
-                    }
-                }
+        choices.forEachIndexed { i, choice ->
+            val selected = state.value == i
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                    .clickable { state.value = i }
+                    .padding(horizontal = 4.dp)
+            ) {
+                RadioButton(selected = selected, onClick = { state.value = i })
+                Spacer(Modifier.width(8.dp))
+                choiceContent(i, choice)
             }
-            Spacer(Modifier.height(8.dp))
         }
-        Divider()
     }
 }

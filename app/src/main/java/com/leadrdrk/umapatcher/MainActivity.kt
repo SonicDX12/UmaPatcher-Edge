@@ -28,6 +28,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -176,7 +179,11 @@ private fun MainContent() {
     }
 
     Surface(color = MaterialTheme.colorScheme.background) {
-        Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .glowBackground()
+        ) {
             if (rootInitialized.value) {
                 DestinationsNavHost(
                     navGraph = NavGraphs.root,
@@ -199,6 +206,20 @@ private fun MainContent() {
                 }
             }
         }
+    }
+}
+
+/** Two soft color halos behind the content, drawn as radial gradients that fade to nothing. */
+@Composable
+private fun Modifier.glowBackground(): Modifier {
+    val first = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+    val second = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.10f)
+    return drawBehind {
+        val radius = size.maxDimension * 0.6f
+        val topRight = Offset(size.width, size.height * 0.15f)
+        val bottomLeft = Offset(0f, size.height * 0.8f)
+        drawCircle(Brush.radialGradient(listOf(first, Color.Transparent), topRight, radius), radius, topRight)
+        drawCircle(Brush.radialGradient(listOf(second, Color.Transparent), bottomLeft, radius), radius, bottomLeft)
     }
 }
 

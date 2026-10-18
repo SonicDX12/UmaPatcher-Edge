@@ -15,13 +15,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
+import com.leadrdrk.umapatcher.ui.component.ScreenHeader
+import com.leadrdrk.umapatcher.ui.component.SectionCard
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
@@ -45,7 +54,6 @@ import com.leadrdrk.umapatcher.R
 import com.leadrdrk.umapatcher.patcher.LegacyInstaller
 import com.leadrdrk.umapatcher.ui.component.BackButton
 import com.leadrdrk.umapatcher.ui.component.SimpleOkCancelDialog
-import com.leadrdrk.umapatcher.ui.component.TopBar
 import com.leadrdrk.umapatcher.ui.patcher.PatcherLauncher
 import com.leadrdrk.umapatcher.utils.copyTo
 import com.leadrdrk.umapatcher.utils.getActivity
@@ -220,72 +228,77 @@ fun PatchingScreen(navigator: DestinationsNavigator) {
         PatcherLauncher.runPatcher(context)
     }
 
-    Scaffold(
-        topBar = {
-            TopBar(
-                title = if (completed) completedStr else workingStr,
-                navigationIcon = { BackButton(navigator, enabled = (completed || PatcherLauncher.patcher == null) && sfFile == null && legacyFile == null) }
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxWidth()
-        ) {
-            TextField(
-                value = log.joinToString("\n"),
-                onValueChange = {},
-                readOnly = true,
-                textStyle = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    lineHeight = TextUnit(1.4f, TextUnitType.Em)
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(scrollState),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Unspecified,
-                    unfocusedIndicatorColor = Color.Unspecified
-                )
-            )
-            Column(
-                modifier = Modifier
-                    .padding(all = 16.dp)
+    val canGoBack = (completed || PatcherLauncher.patcher == null) && sfFile == null && legacyFile == null
+    val colors = MaterialTheme.colorScheme
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        ScreenHeader(
+            title = if (completed) completedStr else workingStr,
+            navigationIcon = { BackButton(navigator, enabled = canGoBack) }
+        )
+
+        SectionCard {
+            Row(
+                modifier = Modifier.padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
+                Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+                    when {
+                        completed -> Icon(
+                            if (PatcherLauncher.succeeded) Icons.Filled.CheckCircle else Icons.Filled.Warning,
+                            null,
+                            tint = if (PatcherLauncher.succeeded) colors.primary else colors.error,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        progress < 0 -> CircularProgressIndicator(
+                            modifier = Modifier.fillMaxSize(),
+                            strokeWidth = 6.dp
+                        )
+                        else -> {
+                            CircularProgressIndicator(
+                                progress = progress,
+                                modifier = Modifier.fillMaxSize(),
+                                strokeWidth = 6.dp,
+                                trackColor = colors.surfaceVariant
+                            )
+                            Text(
+                                text = "${(progress * 100).toInt()}%",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.width(20.dp))
+                Text(
+                    text = currentTask,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
+        SectionCard(Modifier.weight(1f)) {
+            SelectionContainer {
+                Text(
+                    text = log.joinToString("\n"),
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 13.sp,
+                        lineHeight = TextUnit(1.4f, TextUnitType.Em)
+                    ),
+                    color = colors.onSurfaceVariant,
                     modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = currentTask,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(Modifier.width(16.dp))
-                    Text(
-                        text = if (progress < 0) "¯\\_(ツ)_/¯" else "${(progress * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                if (progress < 0) {
-                    // Indeterminate
-                    LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                else {
-                    LinearProgressIndicator(
-                        progress = progress,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(16.dp)
+                )
             }
         }
     }
